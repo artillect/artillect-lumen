@@ -16,6 +16,7 @@ uniform vec3 fogColor;
 uniform sampler2D colortex0;
 uniform sampler2D colortex1;
 uniform sampler2D colortex2;
+uniform sampler2D colortex3;
 uniform sampler2D depthtex0;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
@@ -31,10 +32,11 @@ uniform mat4 shadowProjection;
 const int colortex0Format = RGBA16F;
 const int colortex1Format = RGB16;
 const int colortex2Format = RGB16;
+const int colortex3Format = RGB16;
 */
 
 const float sunPathRotation = -40.0f;
-const int shadowMapResolution = 2048;
+const int shadowMapResolution = 4096;
 const int noiseTextureResolution = 64;
 
 const float Ambient = 0.025f;
@@ -120,7 +122,7 @@ float getBrightness(vec3 Normal) {
 
     // Daytime
     if (worldTime >= 23000 || worldTime < 12000) {
-        NdotL = 1.5 * max(dot(Normal, normalize(sunPosition)), 0.0);
+        NdotL = 1.0 * max(dot(Normal, normalize(sunPosition)), 0.0);
     } 
     // Sunset
     else if (worldTime >= 12000 && worldTime < 12786) {
@@ -147,7 +149,7 @@ void main(){
     // Account for gamma correction
     vec3 Albedo = pow(texture2D(colortex0, TexCoords).rgb, vec3(2.2f));
     float Depth = texture2D(depthtex0, TexCoords).r;
-    //float fog = texture2D(colortex8, TexCoords).r;
+    vec2 fog = texture2D(colortex3, TexCoords).rg;
     if(Depth == 1.0f){
         gl_FragData[0] = vec4(Albedo, 1.0f);
         return;
@@ -161,7 +163,7 @@ void main(){
     float NdotL = getBrightness(Normal);
     // Do the lighting calculations
     vec3 Diffuse = Albedo * (LightmapColor + NdotL * GetShadow(Depth) + Ambient);
-    //Diffuse.rgb = mix(Diffuse.rgb, fogColor, fog * 1);
+    Diffuse.rgb = mix(Diffuse.rgb, skyColor, fog.x * floor(fog.y));
     /* DRAWBUFFERS:0 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0f);
