@@ -163,7 +163,7 @@ void main(){
     float NdotL = getBrightness(Normal);
     // Do the lighting calculations
     vec3 Diffuse = Albedo * (LightmapColor + NdotL * GetShadow(Depth) + Ambient);
-    Diffuse.rgb = mix(Diffuse.rgb, skyColor, fog.x * floor(fog.y));
+    Diffuse.rgb = mix(Diffuse.rgb, fogColor * skyColor, fog.x * floor(fog.y));
     /* DRAWBUFFERS:0 */
     // Finally write the diffuse color
     gl_FragData[0] = vec4(Diffuse, 1.0f);
